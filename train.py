@@ -157,7 +157,7 @@ def evaluate(model, loader, device):
 
 if __name__ == '__main__':
     # ---- Training config (paper-like) ----
-    bs, epochs, lr = 2, 250, 1e-4
+    bs, epochs, lr = 2, 320, 1e-4
     torch.manual_seed(2023); np.random.seed(2023)
     dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     torch.backends.cudnn.benchmark = True
@@ -254,6 +254,32 @@ if __name__ == '__main__':
               f"MAE {val_mae:.4f} | rRMSE {val_rrmse:.4f} | ΔPR {val_dpr:.3f} | "
               f"DSC_A90 {val_dice:.3f} | ΔF(mm) {val_dfmm:.2f}")
 
+        # ---- Model selection: checkpoint best on composite score; early stopping ----
+        if ep == 1:
+            os.makedirs("checkpoints", exist_ok=True)
+            best_score = -float('inf')
+            epochs_no_improve = 0
+            patience = 25  # stop if no improvement for 25 epochs
+        
+        # Define a composite score: prioritize Dice, penalize ΔPR and ΔF
+        # (Weights are reasonable defaults; tweak if you prefer different trade-offs.)
+        score = (val_dice) - 0.5*(val_dpr) - 0.02*(val_dfmm)
+        
+        # Save best
+        if score > best_score:
+            best_score = score
+            epochs_no_improve = 0
+            torch.save(G.state_dict(), "checkpoints/best_G.pt")
+            torch.save(D.state_dict(), "checkpoints/best_D.pt")
+            with open("checkpoints/val_metrics.txt", "a") as f:
+                f.write(f"ep={ep} score={score:.4f} MAE={val_mae:.4f} rRMSE={val_rrmse:.4f} "
+                        f"dPR={val_dpr:.4f} DSC={val_dice:.4f} dFmm={val_dfmm:.2f}\n")
+        else:
+            epochs_no_improve += 1
+            if epochs_no_improve >= patience:
+                print(f"Early stopping at epoch {ep} (no improvement for {patience} epochs).")
+                break
+        
         # Step schedulers AFTER optimizer steps; guard D's scheduler
         schedG.step()
         if did_step_D:
@@ -264,3 +290,4 @@ if __name__ == '__main__':
             raise RuntimeError('❗ Got NaN/Inf in G – check data values / ε guards')
 
     print('✓ Training finished without NaNs')
+
