@@ -1,0 +1,11 @@
+* text=auto
+*.py text eol=lf
+*.m text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf
+*.mlx binary
+# Preserve baseline snapshots as evidence, including original whitespace.
+tests/reference/** -text -whitespace
+docs/baseline.m -whitespace

@@ -1,0 +1,13 @@
+__pycache__/
+*.egg-info/
+.venv/
+build/
+dist/
+runs/
+data/
+checkpoints/
+*.dcm
+*.mat
+*.pt
+*.log
+config.local.json
