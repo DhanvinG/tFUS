@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tfus-research"
+version = "0.1.0"
+description = "Integrated MATLAB/k-Wave and PyTorch tFUS research workflow"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24,<3", "h5py>=3.8,<4", "torch>=2.1,<3", "matplotlib>=3.7,<4"]
+
+[project.scripts]
+tfus = "tfus.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.data-files]
+"share/tfus/matlab" = ["matlab/*.m"]
+"share/tfus/matlab/functions" = ["matlab/functions/*.m"]
+"share/tfus/matlab/stages" = ["matlab/stages/*.m"]
